@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.franciszabala.simplecustomer.exceptions.AppException;
 import com.franciszabala.simplecustomer.exceptions.CustomerNotFoundException;
+import com.franciszabala.simplecustomer.exceptions.InvalidPhoneNumberException;
 import com.franciszabala.simplecustomer.exceptions.MissingValueException;
 import com.franciszabala.simplecustomer.model.Customer;
 import com.franciszabala.simplecustomer.model.ResponseObject;
@@ -110,6 +111,16 @@ public class CustomerResource {
 		 responseObject.setCode(String.valueOf(nne.getCode()));
 		 responseObject.setStatus(String.valueOf(nne.getStatus()));
 		 responseObject.setRemarks("Customer with ID " + nne.getCustomerId() + " not found.");
+		 return responseObject;
+	 }
+	
+	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+	 @ExceptionHandler(InvalidPhoneNumberException.class)
+	 public ResponseObject handleInvalidPhoneNumber(InvalidPhoneNumberException nne) {
+		 ResponseObject responseObject = new ResponseObject();
+		 responseObject.setCode(String.valueOf(nne.getCode()));
+		 responseObject.setStatus(String.valueOf(nne.getStatus()));
+		 responseObject.setRemarks(nne.getPhoneNumber() +" is not valid.");
 		 return responseObject;
 	 }
 }

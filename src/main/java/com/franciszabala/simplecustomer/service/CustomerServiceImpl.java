@@ -7,14 +7,21 @@ import org.springframework.stereotype.Service;
 
 import com.franciszabala.simplecustomer.exceptions.AppException;
 import com.franciszabala.simplecustomer.exceptions.CustomerNotFoundException;
+import com.franciszabala.simplecustomer.exceptions.InvalidPhoneNumberException;
 import com.franciszabala.simplecustomer.exceptions.MissingValueException;
 import com.franciszabala.simplecustomer.model.Customer;
 import com.franciszabala.simplecustomer.repository.CustomerRepository;
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
 	
 	private CustomerRepository customerRepository;
+	
+	private PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
+	
 	
 	@Autowired
 	public CustomerServiceImpl(CustomerRepository customerRepository) {
@@ -74,6 +81,18 @@ public class CustomerServiceImpl implements CustomerService {
 		if (customer.getFirstName() == null || customer.getFirstName().isEmpty()) {
 			throw new MissingValueException(400, 4002, "First name should not be empty", "", "");
 		}
+		
+		if (customer.getPhoneNumberRaw() == null || customer.getPhoneNumberRaw().isEmpty()) {
+			throw new MissingValueException(400, 4003, "Phone number should not be empty", "", "");
+		}
+		
+		try {
+			PhoneNumber contactNumObj = phoneUtil.parse(customer.getPhoneNumberRaw(), "");
+			customer.setPhoneNumber(contactNumObj);
+		} catch (NumberParseException e) {
+			throw new InvalidPhoneNumberException(400, 4004, "Invalid phone number", "", "", customer.getPhoneNumberRaw());
+		}
+		
 		
 		return true;
 	}

@@ -52,14 +52,14 @@ public class CustomerWebServiceErrorsITTest {
 				.contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
 				.content(jsonInString))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code", Matchers.equalTo("4000")));
+				.andExpect(jsonPath("$.code", Matchers.equalTo("4001")));
 	}
 	
 	@Test
 	public void testSaveCustomer_emptyFirstName() throws Exception {
 		Customer customer = new Customer();
-		customer.setFirstName("Tali'Zorah");
-		customer.setLastName("");
+		customer.setFirstName("");
+		customer.setLastName("Laswon");
 		
 		ObjectMapper mapper = new ObjectMapper();
 		String jsonInString = mapper.writeValueAsString(customer);
@@ -68,6 +68,6 @@ public class CustomerWebServiceErrorsITTest {
 				.contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
 				.content(jsonInString))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code", Matchers.equalTo("4001")));
+				.andExpect(jsonPath("$.code", Matchers.equalTo("4002")));
 	}
 }
