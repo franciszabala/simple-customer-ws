@@ -1,25 +1,33 @@
 package com.franciszabala.simplecustomer.resource;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.franciszabala.simplecustomer.model.Customer;
-import com.franciszabala.simplecustomer.service.SimpleCustomerService;
+import com.franciszabala.simplecustomer.service.CustomerService;
 
 @RestController
 @RequestMapping("/customer")
 public class CustomerResource {
 
 	
-	private SimpleCustomerService simpleCustomerService;
+	private CustomerService simpleCustomerService;
 	
 	@Autowired
-	public CustomerResource(SimpleCustomerService simpleCustomerService) {
+	public CustomerResource(CustomerService simpleCustomerService) {
 		super();
 		this.simpleCustomerService = simpleCustomerService;
 	}
@@ -29,6 +37,44 @@ public class CustomerResource {
 	@ResponseBody
 	@Transactional(readOnly = true)
 	public List<Customer> getAllCustomers() {
-		return this.simpleCustomerService.getAllCustomers();
+		return simpleCustomerService.getAllCustomers();
+	}
+	
+	@RequestMapping("lastname/{lastName}")
+	@ResponseBody
+	@Transactional(readOnly = true)
+	public List<Customer> getCustomersByLastName(@PathVariable String lastName) {
+		return simpleCustomerService.getCustomersByLastName(lastName);
+	}
+	
+	@RequestMapping(value = "save/list", method = RequestMethod.POST,
+			consumes=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	public List<Customer>  saveCustomers(@RequestBody List<Customer> listOfCustomers) {
+		return simpleCustomerService.saveCustomers(listOfCustomers);
+	}
+	
+	@ResponseStatus(HttpStatus.CREATED)
+	@RequestMapping(value = "save", method = RequestMethod.POST,
+			consumes=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	public Customer saveCustomer(@RequestBody Customer customer) {
+		return simpleCustomerService.saveCustomer(customer);
+	}
+	
+
+	@ResponseStatus(HttpStatus.CREATED)
+	@RequestMapping(value = "update", method = RequestMethod.PUT,
+			consumes=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	public Customer updateCustomer(@RequestBody Customer customer) {
+		return simpleCustomerService.updateCustomer(customer);
+	}
+	
+	@ResponseStatus(HttpStatus.OK)
+	@RequestMapping(value = "delete/{customerId}", method = RequestMethod.DELETE)
+	public Map<String,Object> updateCustomer(@PathVariable Long customerId) {
+		simpleCustomerService.deleteCustomerById(customerId);
+		Map<String, Object> returnObject =  new HashMap<String,Object>();
+		returnObject.put("status", "success");
+		returnObject.put("remarks", "Deleted customer id: "+customerId.intValue());
+		return returnObject;
 	}
 }
