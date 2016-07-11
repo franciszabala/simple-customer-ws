@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,8 +17,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.franciszabala.simplecustomer.exceptions.AppException;
+import com.franciszabala.simplecustomer.exceptions.CustomerNotFoundException;
+import com.franciszabala.simplecustomer.exceptions.MissingValueException;
 import com.franciszabala.simplecustomer.model.Customer;
+import com.franciszabala.simplecustomer.model.ResponseObject;
 import com.franciszabala.simplecustomer.service.CustomerService;
+
+
 
 @RestController
 @RequestMapping("/customer")
@@ -40,6 +47,13 @@ public class CustomerResource {
 		return simpleCustomerService.getAllCustomers();
 	}
 	
+	@RequestMapping("id/{id}")
+	@ResponseBody
+	@Transactional(readOnly = true)
+	public Customer getCustomersByLastName(@PathVariable Long id) throws AppException {
+		return simpleCustomerService.getCustomerById(id);
+	}
+	
 	@RequestMapping("lastname/{lastName}")
 	@ResponseBody
 	@Transactional(readOnly = true)
@@ -56,7 +70,7 @@ public class CustomerResource {
 	@ResponseStatus(HttpStatus.CREATED)
 	@RequestMapping(value = "save", method = RequestMethod.POST,
 			consumes=MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public Customer saveCustomer(@RequestBody Customer customer) {
+	public Customer saveCustomer(@RequestBody Customer customer) throws AppException {
 		return simpleCustomerService.saveCustomer(customer);
 	}
 	
@@ -77,4 +91,25 @@ public class CustomerResource {
 		returnObject.put("remarks", "Deleted customer id: "+customerId.intValue());
 		return returnObject;
 	}
+	
+	
+	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+	 @ExceptionHandler(MissingValueException.class)
+	 public ResponseObject handleMissingValue(MissingValueException nne) {
+		 ResponseObject responseObject = new ResponseObject();
+		 responseObject.setCode(String.valueOf(nne.getCode()));
+		 responseObject.setStatus(String.valueOf(nne.getStatus()));
+		 responseObject.setRemarks(nne.getMessage());
+		 return responseObject;
+	 }
+	
+	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+	 @ExceptionHandler(CustomerNotFoundException.class)
+	 public ResponseObject handleCustomerNotFound(CustomerNotFoundException nne) {
+		 ResponseObject responseObject = new ResponseObject();
+		 responseObject.setCode(String.valueOf(nne.getCode()));
+		 responseObject.setStatus(String.valueOf(nne.getStatus()));
+		 responseObject.setRemarks("Customer with ID " + nne.getCustomerId() + " not found.");
+		 return responseObject;
+	 }
 }

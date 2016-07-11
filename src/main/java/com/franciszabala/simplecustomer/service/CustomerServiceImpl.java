@@ -5,6 +5,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.franciszabala.simplecustomer.exceptions.AppException;
+import com.franciszabala.simplecustomer.exceptions.CustomerNotFoundException;
+import com.franciszabala.simplecustomer.exceptions.MissingValueException;
 import com.franciszabala.simplecustomer.model.Customer;
 import com.franciszabala.simplecustomer.repository.CustomerRepository;
 
@@ -30,7 +33,8 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	@Override
-	public Customer saveCustomer(Customer customer) {
+	public Customer saveCustomer(Customer customer) throws AppException {
+		customerValidator(customer);
 		return customerRepository.save(customer);
 	}
 
@@ -41,8 +45,12 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 	
 	@Override
-	public Customer getCustomerById(Long id) {
-		return customerRepository.findOne(id);
+	public Customer getCustomerById(Long id) throws AppException {
+		Customer customer = customerRepository.findOne(id);
+		if (customer == null) {
+			throw new CustomerNotFoundException(400, 4010, "Customer not found.", "", "", id);
+		}
+		return customer;
 	}
 
 	@Override
@@ -57,6 +65,18 @@ public class CustomerServiceImpl implements CustomerService {
 		return true;
 	}
 
-	
+	private boolean customerValidator(Customer customer) throws AppException {
+		
+		if (customer.getLastName() == null || customer.getLastName().isEmpty()) {
+			throw new MissingValueException(400, 4001, "Last name should not be empty", "", "");
+		}
+		
+		if (customer.getFirstName() == null || customer.getFirstName().isEmpty()) {
+			throw new MissingValueException(400, 4002, "First name should not be empty", "", "");
+		}
+		
+		return true;
+	}
+		
 
 }
